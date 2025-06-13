@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Product Prediction</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        h1, h2 {
+            color: #444;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        /* Section Styles */
+        section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Form and Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        td, th {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* List Styles */
+        ul.product-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.product-list li {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Result Styles */
+        #result {
+            padding: 10px;
+            background: #e9f7e9;
+            border: 1px solid #d4edda;
+            color: #155724;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #d9534f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Event Product Prediction</h1>
+</header>
+
+<div class="container">
+    <!-- Top-Selling Products Section -->
+    <section>
+        <h2>Top-Selling Products</h2>
+        <div>
+            <label for="category-filter">Filter by Category:</label>
+            <select id="category-filter">
+                <option value="">All Categories</option>
+                <option value="elektronik">Electronics</option>
+                <option value="fashion">Fashion</option>
+                <option value="olahraga">Sports</option>
+                <option value="handphone">Handphone</option>
+                <option value="pertukangan">Home Appliances</option>
+            </select>
+        </div>
+        <ul id="top-products-list" class="product-list"></ul>
+    </section>
+
+    <!-- Product Prediction Form -->
+    <section>
+        <h2>Product Prediction</h2>
+        <form id="data-form">
+            <table>
+                <tr>
+                    <th>Product Category</th>
+                    <th>Past Sales</th>
+                </tr>
+                <tr>
+                    <td>
+                        <select name="category" required>
+                            <option value="1">Electronics</option>
+                            <option value="2">Fashion</option>
+                            <option value="3">Sports</option>
+                            <option value="4">Handphone</option>
+                            <option value="5">Home Appliances</option>
+                        </select>
+                    </td>
+                    <td><input type="number" step="1" name="sales" placeholder="Enter sold count" required></td>
+                </tr>
+            </table>
+            <button type="submit">Predict</button>
+        </form>
+        <div id="result"></div>
+    </section>
+</div>
+
+<script>
+    // Fetch Top Products
+    async function fetchTopProducts(category = "") {
+        try {
+            const response = await fetch(`http://localhost:5000/top-sold-products${category ? '?category=' + category : ''}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch top products: ${response.statusText}`);
+            }
+            const data = await response.json();
+
+            const topProductsList = document.getElementById('top-products-list');
+            topProductsList.innerHTML = ""; // Clear previous data
+
+            if (data.top_products && data.top_products.length > 0) {
+                data.top_products.forEach(product => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${product.product_name} - Sold: ${product.sold}`;
+                    topProductsList.appendChild(listItem);
+                });
+            } else {
+                topProductsList.innerHTML = "<li>No products found</li>";
+            }
+        } catch (error) {
+            console.error("Error fetching top products:", error);
+            document.getElementById('top-products-list').innerHTML = "<li class='error'>Unable to fetch data. Please try again later.</li>";
+        }
+    }
+
+    // Handle Category Filter Change
+    document.getElementById('category-filter').addEventListener('change', (event) => {
+        fetchTopProducts(event.target.value);
+    });
+
+    // Initial fetch
+    fetchTopProducts();
+
+    // Handle Prediction Form Submission
+    document.getElementById("data-form").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = {};
+        formData.forEach((value, key) => data[key] = value);
+
+        const features = [
+            parseInt(data.category),  // Category as integer
+            parseFloat(data.sales)    // Sales as float
+        ];
+
+        try {
+            const response = await fetch("http://localhost:5000/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ features })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || "Server Error");
+            }
+
+            const result = await response.json();
+            document.getElementById("result").innerHTML = `
+                <h3>Prediction Result:</h3>
+                <p><strong>Predicted Product Category:</strong> ${result.product}</p>
+                <p><strong>Predicted Sales:</strong> ${result.sales.toFixed(0)}</p>
+            `;
+        } catch (error) {
+            document.getElementById("result").innerHTML = `<span class="error">Error: ${error.message}</span>`;
+        }
+    });
+</script>
+
+</body>
+</html>
