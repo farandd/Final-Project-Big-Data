@@ -14,7 +14,7 @@ Implementasi Data Lakehouse pada Tokopedia yang dilengkapi dengan dashboard bara
 https://www.kaggle.com/datasets/farhan999/tokopedia-product-reviews/data
 
 ## Arsitektur
-![arsi]()
+![arsitektur](img/Group_739.png)
 
 ## How to run?
 ### Quick start
