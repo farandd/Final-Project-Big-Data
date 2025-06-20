@@ -162,10 +162,10 @@ Permintaan POST harus menyertakan payload JSON seperti berikut:
 
 ### Tampilan MiniO
 1. Dashboard
-![minio-dashboard](img/minio-dashboard.png)
+![minio-dashboard](img/minio_dashboard.png)
 
 2. Bucket Model (tempat menaruh model)
-![bucket model](img/isi-bucket-model.png)
+![bucket model](img/isi_bucket_model.png)
 
 3. Bucket Database (tempat data json)
-![bucket json](img/isi-bucket-json.png)
+![bucket json](img/isi_bucket_review.png)
