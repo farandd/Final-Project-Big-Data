@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 
-KAFKA_BROKER = "localhost:9092"
+KAFKA_BROKER = "host.docker.internal:9092"
 TOPIC_NAME = "product-input"
 
 minio_client = Minio(

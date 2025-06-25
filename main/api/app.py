@@ -122,8 +122,21 @@ def top_sold_products():
         if category_filter:
             product_data = [p for p in product_data if p['category'].lower() == category_filter.lower()]
 
+        # Sort by sold descending
         product_data = sorted(product_data, key=lambda x: x['sold'], reverse=True)
-        top_products = product_data[:10]
+
+        # Hilangkan duplikat berdasarkan product_name
+        seen = set()
+        unique_products = []
+        for product in product_data:
+            name = product['product_name']
+            if name not in seen:
+                seen.add(name)
+                unique_products.append(product)
+
+        # Ambil hanya 10 teratas
+        top_products = unique_products[:10]
+
 
         return jsonify({"top_products": top_products})
 
@@ -216,4 +229,5 @@ def train():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    print("Starting Flask server on http://localhost:5000 ...")
     app.run(debug=True, port=5000)
